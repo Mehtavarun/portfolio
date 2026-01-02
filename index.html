@@ -3,329 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Varun Mehta | Architect</title>
+    <title>Varun Mehta</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg: #0b0d10;
-            --surface: #15191f;
-            --surface-highlight: #1e232b;
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
-            --accent: #6366f1; /* Indigo */
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --border: rgba(255,255,255,0.08);
-            --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.7);
+            --bg-deep: #050a14;
+            --bg-panel: rgba(16, 28, 48, 0.9);
+            --neon-blue: #00f3ff;
+            --neon-green: #0aff0a;
+            --neon-purple: #bc13fe;
+            --neon-red: #ff0055;
+            --text-main: #e0fbfc;
+            --grid-line: rgba(0, 243, 255, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg);
+            background-color: var(--bg-deep);
             color: var(--text-main);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
             height: 100vh;
             width: 100vw;
-            overflow: hidden;
+        }
+
+        /* --- BACKGROUND GRID --- */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: -2;
+            opacity: 0.4;
+        }
+
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
+        }
+
+        /* --- BOOT SCREEN --- */
+        #boot-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-green);
+            font-size: 14px;
+        }
+
+        .boot-line { opacity: 0; }
+        .boot-cursor { animation: blink 0.8s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- MAIN UI LAYOUT --- */
+        #system-canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* --- BACKGROUND GRID --- */
-        .grid-bg {
-            position: absolute; width: 200%; height: 200%;
-            background-image: 
-                radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: 0.1;
-            animation: rotate 120s linear infinite;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* --- CORE SYSTEM --- */
-        #system-container {
-            position: relative;
-            width: 100%; height: 100%;
-            perspective: 1000px;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* The Central Monolith */
-        .core {
-            width: 160px; height: 160px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            text-align: center;
-            z-index: 100;
-            cursor: pointer;
-            box-shadow: 0 0 60px var(--accent-glow);
-            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
-        }
-
-        .core:hover {
-            transform: scale(1.05);
-            border-color: var(--accent);
-            box-shadow: 0 0 80px var(--accent-glow);
-        }
-
-        .core i { font-size: 2.5rem; color: var(--text-main); margin-bottom: 10px; transition: transform 0.5s; }
-        .core h1 { font-size: 1.2rem; font-weight: 800; line-height: 1.2; }
-        .core p { font-size: 0.7rem; color: var(--accent); font-family: 'JetBrains Mono'; margin-top: 5px; letter-spacing: 1px;}
-
-        /* Decoupled State for Core */
-        body.decoupled .core {
-            transform: scale(0.8);
-            opacity: 0.8;
-        }
-        body.decoupled .core i { transform: rotate(180deg); }
-
-        /* --- MICROSERVICES (CARDS) --- */
-        .card {
+        /* SVG CONNECTORS LAYER */
+        .connections-layer {
             position: absolute;
-            background: rgba(21, 25, 31, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0; /* Padding handled inside content for scroll */
-            box-shadow: var(--card-shadow);
-            opacity: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            width: 350px;
-            max-height: 500px;
-            display: flex; flex-direction: column;
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            transform: translate(-50%, -50%) scale(0.5); /* Start tiny in center */
-            top: 50%; left: 50%;
+            z-index: 0;
         }
 
-        /* Expanded Positions */
-        body.decoupled .card {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, -50%) scale(1);
+        .connector {
+            stroke: rgba(0, 243, 255, 0.2);
+            stroke-width: 2;
+            fill: none;
         }
 
-        /* Card Header */
-        .card-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border);
+        .packet {
+            fill: var(--neon-blue);
+            filter: drop-shadow(0 0 5px var(--neon-blue));
+        }
+
+        /* --- SYSTEM NODES --- */
+        .node {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background: var(--bg-panel);
+            border: 1px solid var(--neon-blue);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+        }
+
+        .node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+            border-color: #fff;
+            z-index: 20;
+        }
+
+        .node i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .node-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .node-status {
+            font-size: 0.7rem;
+            color: var(--neon-green);
+            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .blinking-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* Positioning Nodes (Hexagonal-ish layout) */
+        #node-gateway { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 180px; border-color: #fff; }
+        #node-exp { top: 20%; left: 20%; }
+        #node-skills { top: 20%; right: 20%; }
+        #node-projects { bottom: 20%; left: 20%; }
+        #node-contact { bottom: 20%; right: 20%; }
+
+        /* Specific Colors */
+        #node-exp { border-color: var(--neon-purple); }
+        #node-exp i { color: var(--neon-purple); text-shadow: 0 0 10px var(--neon-purple); }
+        
+        #node-skills { border-color: var(--neon-green); }
+        #node-skills i { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
+
+        #node-projects { border-color: var(--neon-red); }
+        #node-projects i { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
+
+        /* --- MODAL (DATA INSPECTOR) --- */
+        #inspector-panel {
+            position: fixed;
+            right: -600px;
+            top: 0;
+            width: 500px;
+            height: 100vh;
+            background: rgba(5, 10, 20, 0.95);
+            border-left: 2px solid var(--neon-blue);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            transition: right 0.4s cubic-bezier(0.86, 0, 0.07, 1);
+            padding: 40px;
+            box-shadow: -20px 0 50px rgba(0,0,0,0.8);
+            overflow-y: auto;
+        }
+
+        #inspector-panel.active { right: 0; }
+
+        .panel-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
+        .close-btn {
+            background: none;
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
+            padding: 5px 15px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .close-btn:hover { background: var(--neon-red); color: #000; }
+
+        .data-block {
+            margin-bottom: 30px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .data-label { color: #888; font-size: 0.8rem; margin-bottom: 5px; display: block;}
+        .data-value { color: #fff; font-size: 1rem; line-height: 1.6; }
+        
+        .skill-tag {
+            display: inline-block;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 4px 8px;
+            margin: 0 5px 5px 0;
+            font-size: 0.8rem;
+        }
+
+        .job-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
             background: rgba(255,255,255,0.02);
         }
 
-        .card-header h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 4px; }
-        .card-header span { font-size: 0.75rem; color: var(--accent); font-family: 'JetBrains Mono'; display: block; }
-        .card-header .date { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
+        .job-title { color: var(--neon-purple); font-weight: bold; }
+        .job-date { float: right; font-size: 0.8rem; color: #666; }
 
-        /* Card Body (Scrollable) */
-        .card-body {
-            padding: 20px 25px;
-            overflow-y: auto;
-            flex-grow: 1;
+        /* --- HUD ELEMENTS --- */
+        .hud-top-left {
+            position: fixed; top: 20px; left: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; color: var(--neon-blue);
+            z-index: 5;
         }
-
-        /* Custom Scrollbar */
-        .card-body::-webkit-scrollbar { width: 6px; }
-        .card-body::-webkit-scrollbar-track { background: transparent; }
-        .card-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        .card-body::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-
-        .card ul { list-style: none; }
-        .card li {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            margin-bottom: 12px;
-            padding-left: 15px;
-            position: relative;
-            line-height: 1.5;
-        }
-        .card li::before {
-            content: '•';
-            color: var(--accent);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-        }
-
-        /* Specific Card Positions (Desktop) */
-        /* Top Left */
-        body.decoupled #card-weave { top: 25%; left: 25%; width: 400px; height: 450px; }
-        /* Bottom Right */
-        body.decoupled #card-nagarro { top: 75%; left: 75%; width: 350px; height: 350px; }
-        /* Top Right */
-        body.decoupled #card-skills { top: 25%; left: 75%; width: 320px; height: 400px; }
-        /* Bottom Left */
-        body.decoupled #card-projects { top: 75%; left: 25%; width: 350px; height: 300px; }
-
-        /* Tags for Skills */
-        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--text-main);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            font-family: 'JetBrains Mono';
-        }
-
-        /* Footer */
-        .footer-nav {
-            position: fixed; bottom: 30px;
-            display: flex; gap: 20px;
-            opacity: 0; transition: opacity 1s 0.5s;
-        }
-        body.decoupled .footer-nav { opacity: 1; }
-        .footer-nav a { color: var(--text-dim); font-size: 1.2rem; transition: color 0.3s; }
-        .footer-nav a:hover { color: var(--accent); }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 1024px) {
-            body { overflow-y: auto; height: auto; display: block; padding: 50px 20px; }
-            #system-container { display: block; perspective: none; height: auto; padding-top: 150px;}
-            
-            .core { 
-                position: fixed; top: 30px; left: 50%; 
-                transform: translateX(-50%) scale(0.8) !important;
-                margin-bottom: 50px;
-                z-index: 999;
-            }
-
-            .card {
-                position: relative; top: auto !important; left: auto !important;
-                transform: none !important; opacity: 1 !important; pointer-events: auto !important;
-                width: 100% !important; height: auto !important;
-                margin-bottom: 20px;
-                max-height: none;
-            }
-
-            /* Hide footer on mobile, or make static */
-            .footer-nav { position: static; justify-content: center; margin-top: 30px; opacity: 1; }
+        
+        .hud-bottom-right {
+            position: fixed; bottom: 20px; right: 20px;
+            text-align: right;
+            z-index: 5;
         }
 
     </style>
 </head>
 <body>
 
-    <div class="grid-bg"></div>
-
-    <div id="system-container">
-        
-        <div class="core" onclick="toggleState()">
-            <i class="fas fa-cubes"></i>
-            <h1>Varun<br>Mehta</h1> <p>DECOUPLE</p>
-        </div>
-
-        <div class="card" id="card-weave">
-            <div class="card-header">
-                <h3>Weave Communications</h3> <span>Interim Team Lead & Sr. Engineer</span> <div class="date">July 2021 - Present | Remote</div> </div>
-            <div class="card-body">
-                <ul>
-                    <li>Re-architected the monolithic sync agent to a modular, multi-process architecture (Parent-Child topology). </li>
-                    <li>Decoupled execution logic by designing a distributed 'Sync-Engine' framework on the client's machine. </li>
-                    <li>Spearheaded the design of a new PMS integration module with 99.9% reliable code via TDD. </li>
-                    <li>Re-architected core payment processing engine to a loosely coupled system (multi-processor routing). </li>
-                    <li>Engineered robust payment split & scheduling system, increasing monthly volume by $1 Million. </li>
-                    <li>Integrated Bank Payments increasing revenue by $500k annually for large value payments. </li>
-                    <li>Built server-driven terminal payment backend achieving 99.9% availability. </li>
-                    <li>Reduced CI/CD pipeline time by 33% by parallelizing integration tests. </li>
-                    <li>Implemented Over-The-Air (OTA) update mechanism allowing sub-engines to be patched independently. </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card" id="card-nagarro">
-            <div class="card-header">
-                <h3>Nagarro Softwares</h3> <span>Software Engineer</span> <div class="date">April 2019 - June 2021</div> </div>
-            <div class="card-body">
-                <ul>
-                    <li>Designed scalable, event-driven email pipeline processing 1 Billion+ emails in < 24hrs. </li>
-                    <li>Boosted system throughput by 130% through in-code queue creation and Java concurrency. </li>
-                    <li>Developed custom Maven dependency versioning tool, reducing update time by 70%. </li>
-                    <li>Implemented multi-tenant microservices and database for client onboarding. </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card" id="card-skills">
-            <div class="card-header">
-                <h3>Technical Skills</h3> <span>Stack & Infrastructure</span>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 15px;">
-                    <strong style="font-size: 0.8rem; color: #fff;">Languages</strong>
-                    <div class="tags">
-                        <span class="tag">Golang</span> <span class="tag">Rust</span> <span class="tag">Python</span> <span class="tag">Java</span> <span class="tag">Node.js</span> <span class="tag">FastAPI</span> </div>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong style="font-size: 0.8rem; color: #fff;">Architecture</strong>
-                    <div class="tags">
-                        <span class="tag">Microservices</span> <span class="tag">Event-Driven</span> <span class="tag">gRPC</span> <span class="tag">Distributed Systems</span> </div>
-                </div>
-                <div>
-                    <strong style="font-size: 0.8rem; color: #fff;">Infra & DB</strong>
-                    <div class="tags">
-                        <span class="tag">Kubernetes</span> <span class="tag">Docker</span> <span class="tag">Kafka</span> <span class="tag">PostgreSQL</span> <span class="tag">Elasticsearch</span> <span class="tag">MongoDB</span> </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" id="card-projects">
-            <div class="card-header">
-                <h3>Key Projects</h3> <span>R&D Initiatives</span>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 15px;">
-                    <strong style="color: var(--accent); font-size: 0.9rem;">Mini LeetCode (WIP)</strong> <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 5px;">
-                        System to execute user-provided code in an isolated, secure environment. </p>
-                </div>
-                <div>
-                    <strong style="color: var(--accent); font-size: 0.9rem;">Distributed Secrets Vault</strong> <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 5px;">
-                        Secure vault service implementing Shamir's Secret Sharing algorithm to split sensitive cryptographic keys. </p>
-                </div>
-            </div>
-        </div>
-
+    <div id="boot-screen">
+        <div class="boot-line">> INITIALIZING KERNEL...</div>
+        <div class="boot-line">> LOADING PROFILE: VARUN MEHTA </div>
+        <div class="boot-line">> MOUNTING SKILLS DATABASE... [SUCCESS]</div>
+        <div class="boot-line">> CONNECTING TO WEAVE COMMUNICATIONS API... </div>
+        <div class="boot-line">> CONNECTING TO NAGARRO LEGACY SYSTEMS... </div>
+        <div class="boot-line">> STARTING SERVICES: [Payments, PMS, Email_Pipeline]</div>
+        <div class="boot-line">> SYSTEM READY. <span class="boot-cursor">_</span></div>
     </div>
 
-    <div class="footer-nav">
-        <a href="mailto:mehtavarunwork@gmail.com"><i class="fas fa-envelope"></i></a> <a href="tel:+919779078000"><i class="fas fa-phone"></i></a> <a href="#"><i class="fab fa-linkedin"></i></a>
+    <div class="grid-bg"></div>
+
+    <div class="hud-top-left">
+        SYSTEM_ID: VM-97790-78000 <br>
+        STATUS: ONLINE<br>
+        UPTIME: 99.9% 
+    </div>
+
+    <div class="hud-bottom-right">
+        <h1 style="font-size: 2rem; margin-bottom: 5px; text-shadow: 0 0 10px #fff;">VARUN MEHTA</h1> <p style="color: var(--neon-blue); font-family: 'JetBrains Mono'">SENIOR SOFTWARE ENGINEER </p>
+    </div>
+
+    <div id="system-canvas">
+        
+        <svg class="connections-layer" id="svg-layer">
+            </svg>
+
+        <div class="node" id="node-gateway" onclick="openPanel('gateway')">
+            <i class="fa-solid fa-server"></i>
+            <span class="node-label">Introduction</span>
+            <span class="node-status"><span class="blinking-dot"></span>Active</span>
+        </div>
+
+        <div class="node" id="node-exp" onclick="openPanel('experience')">
+            <i class="fa-solid fa-microchip"></i>
+            <span class="node-label">Experience</span>
+            <span class="node-status">Load: High</span>
+        </div>
+
+        <div class="node" id="node-skills" onclick="openPanel('skills')">
+            <i class="fa-solid fa-database"></i>
+            <span class="node-label">Skills</span>
+            <span class="node-status">Indexed</span>
+        </div>
+
+        <div class="node" id="node-projects" onclick="openPanel('projects')">
+            <i class="fa-solid fa-network-wired"></i>
+            <span class="node-label">Projects</span>
+            <span class="node-status">3 Running</span>
+        </div>
+
+        <div class="node" id="node-contact" onclick="openPanel('contact')">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <span class="node-label">Contact</span>
+            <span class="node-status">Idle</span>
+        </div>
+    </div>
+
+    <div id="inspector-panel">
+        <div class="panel-header">
+            <h2 class="panel-title" id="panel-title">Header</h2>
+            <button class="close-btn" onclick="closePanel()">CLOSE X</button>
+        </div>
+        <div id="panel-content">
+            </div>
     </div>
 
     <script>
-        const body = document.body;
+        // --- BOOT SEQUENCE LOGIC ---
+        const bootLines = document.querySelectorAll('.boot-line');
+        let delay = 0;
         
-        function toggleState() {
-            body.classList.toggle('decoupled');
+        bootLines.forEach((line, index) => {
+            setTimeout(() => {
+                line.style.opacity = 1;
+            }, delay);
+            delay += (Math.random() * 500) + 200;
+        });
+
+        setTimeout(() => {
+            document.getElementById('boot-screen').style.transform = 'translateY(-100%)';
+            document.getElementById('boot-screen').style.transition = 'transform 0.5s ease-in';
+            document.getElementById('system-canvas').style.opacity = 1;
+            drawConnections(); // Start drawing SVG lines
+        }, delay + 1000);
+
+        // --- DATA CONTENT (Based on Resume) ---
+        const data = {
+            gateway: `
+                <div class="data-block">
+                    <span class="data-label">SYSTEM OWNER</span>
+                    <div class="data-value">Varun Mehta </div>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">ROLE</span>
+                    <div class="data-value" style="color:var(--neon-blue)">Senior Software Engineer (Backend) </div>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">ARCHITECTURE SUMMARY</span>
+                    <div class="data-value">
+                        Expert in designing scalable systems, optimizing processes, and enhancing product reliability. 
+                        Proven track record of leading teams and mentoring talent.  7]
+                    </div>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">LOCATION</span>
+                    <div class="data-value">Hoshiarpur, Punjab, India (Remote Capable)  12]</div>
+                </div>
+            `,
+            experience: `
+                <div class="job-card">
+                    <span class="job-date">07/2025 - Present</span> <div class="job-title">Weave Communications (Backend)</div> <ul style="list-style:none; margin-top:10px; font-size:0.9rem;">
+                        <li>> Fully led multiple PMS integrations with 0 bugs. </li>
+                        <li>> Mentored team on net new integrations. </li>
+                    </ul>
+                </div>
+                <div class="job-card">
+                    <span class="job-date">07/2021 - 06/2025</span> <div class="job-title">Weave Communications (Payments)</div> <ul style="list-style:none; margin-top:10px; font-size:0.9rem;">
+                        <li>> Redesigned payment microservices for multi-processors. </li>
+                        <li>> Increased payment volume by $1M. </li>
+                        <li>> Achieved 99.9% reliability on terminal payments. </li>
+                        <li>> Optimized SQL queries: 60% latency reduction. </li>
+                    </ul>
+                </div>
+                <div class="job-card">
+                    <span class="job-date">04/2019 - 06/2021</span> <div class="job-title">Nagarro Softwares</div> <ul style="list-style:none; margin-top:10px; font-size:0.9rem;">
+                        <li>> Built email pipeline processing 1 billion+ emails. </li>
+                        <li>> Optimized throughput by 130%. </li>
+                    </ul>
+                </div>
+            `,
+            skills: `
+                <div class="data-block">
+                    <span class="data-label">CORE LANGUAGES</span>
+                    <div>
+                        <span class="skill-tag">Golang </span>
+                        <span class="skill-tag">Java </span>
+                        <span class="skill-tag">Python </span>
+                        <span class="skill-tag">Node.js </span>
+                    </div>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">INFRASTRUCTURE & OPS</span>
+                    <div>
+                        <span class="skill-tag">Kubernetes </span>
+                        <span class="skill-tag">Docker </span>
+                        <span class="skill-tag">Kafka </span>
+                        <span class="skill-tag">PostgreSQL </span>
+                        <span class="skill-tag">Elasticsearch </span>
+                    </div>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">ARCHITECTURE</span>
+                    <div>
+                        <span class="skill-tag">Microservices </span>
+                        <span class="skill-tag">GRPC </span>
+                        <span class="skill-tag">System Design </span>
+                    </div>
+                </div>
+            `,
+            projects: `
+                <div class="job-card" style="border-color: var(--neon-red)">
+                    <div class="job-title">WiFi Hosted Image Drive </div>
+                    <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">Jan 2023 | Remote</div>
+                    <p>A WiFi Hosted Image Drive project to store media files.</p>
+                </div>
+                <div class="job-card" style="border-color: var(--neon-red)">
+                    <div class="job-title">Arduino Fan Booster </div>
+                    <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">IoT Project</div>
+                    <p>Personal Arduino project to boost fan speed based on timer.</p>
+                </div>
+                <div class="job-card" style="border-color: var(--neon-red)">
+                    <div class="job-title">Calendar Application </div>
+                    <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">React.js</div>
+                    <p>A personal project featuring a React.JS built calendar.</p>
+                </div>
+            `,
+            contact: `
+                <div class="data-block">
+                    <span class="data-label">INITIATE UPLINK</span>
+                    <a href="mailto:mvarun96@gmail.com" style="color:var(--neon-blue); display:block; font-size:1.2rem; text-decoration:none;">
+                        > mvarun96@gmail.com 
+                    </a>
+                    <a href="tel:+919779078000" style="color:var(--neon-blue); display:block; font-size:1.2rem; text-decoration:none; margin-top:10px;">
+                        > +91-97790-78000 
+                    </a>
+                </div>
+                <div class="data-block">
+                    <span class="data-label">SECURE CHANNELS</span>
+                    <a href="https://linkedin.com/in/mehtavarun96" target="_blank" style="color:var(--neon-green); text-decoration:none;">
+                        > LinkedIn Protocol 
+                    </a>
+                </div>
+            `
+        };
+
+        // --- PANEL LOGIC ---
+        function openPanel(id) {
+            const panel = document.getElementById('inspector-panel');
+            const content = document.getElementById('panel-content');
+            const title = document.getElementById('panel-title');
             
-            const p = document.querySelector('.core p');
-            if(body.classList.contains('decoupled')) {
-                p.innerText = "COUPLE";
-            } else {
-                p.innerText = "DECOUPLE";
-            }
+            title.innerText = id.toUpperCase();
+            content.innerHTML = data[id];
+            
+            panel.classList.add('active');
         }
 
-        // Mouse Parallax - SUBTLE ONLY
-        // We apply this to the background grid only to prevent "Shaking" on interactive elements
-        const grid = document.querySelector('.grid-bg');
-        
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.clientX) / 50;
-            const y = (window.innerHeight / 2 - e.clientY) / 50;
+        function closePanel() {
+            document.getElementById('inspector-panel').classList.remove('active');
+        }
+
+        // --- SVG LINES & PACKETS ANIMATION ---
+        function drawConnections() {
+            const svg = document.getElementById('svg-layer');
+            const gateway = document.getElementById('node-gateway').getBoundingClientRect();
+            const nodes = ['node-exp', 'node-skills', 'node-projects', 'node-contact'];
             
-            // Only move background
-            grid.style.transform = `translate(${x}px, ${y}px)`;
-        });
+            svg.innerHTML = ''; // Clear previous
+
+            // Helper to get center
+            const getCenter = (rect) => ({
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            });
+
+            const p1 = getCenter(gateway);
+
+            nodes.forEach((nodeId, index) => {
+                const nodeEl = document.getElementById(nodeId);
+                const p2 = getCenter(nodeEl.getBoundingClientRect());
+
+                // Create Line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', p1.x);
+                line.setAttribute('y1', p1.y);
+                line.setAttribute('x2', p2.x);
+                line.setAttribute('y2', p2.y);
+                line.classList.add('connector');
+                svg.appendChild(line);
+
+                // Create Packet Animation (Circle moving along line)
+                const packet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                packet.setAttribute('r', '4');
+                packet.classList.add('packet');
+
+                // Animate packet using SMIL (SVG Animation)
+                const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+                anim.setAttribute('dur', (1 + Math.random()) + 's'); // Random speed
+                anim.setAttribute('repeatCount', 'indefinite');
+                anim.setAttribute('path', `M${p1.x},${p1.y} L${p2.x},${p2.y}`);
+                
+                packet.appendChild(anim);
+                svg.appendChild(packet);
+
+                // Reverse Packet (Data return)
+                const packetRev = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                packetRev.setAttribute('r', '3');
+                packetRev.setAttribute('fill', 'var(--neon-purple)');
+                const animRev = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+                animRev.setAttribute('dur', (1.5 + Math.random()) + 's');
+                animRev.setAttribute('repeatCount', 'indefinite');
+                animRev.setAttribute('path', `M${p2.x},${p2.y} L${p1.x},${p1.y}`);
+                
+                packetRev.appendChild(animRev);
+                svg.appendChild(packetRev);
+            });
+        }
+
+        // Redraw on window resize
+        window.addEventListener('resize', drawConnections);
 
     </script>
 </body>
