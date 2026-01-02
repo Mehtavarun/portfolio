@@ -3,330 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Varun Mehta | Architect</title>
+    <title>Varun Mehta | Select Interface</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0d10;
-            --surface: #15191f;
-            --surface-highlight: #1e232b;
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
-            --accent: #6366f1; /* Indigo */
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --border: rgba(255,255,255,0.08);
-            --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.7);
-        }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; height: 100vh; width: 100vw; background: #000; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* --- BACKGROUND GRID --- */
-        .grid-bg {
-            position: absolute; width: 200%; height: 200%;
-            background-image: 
-                radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: 0.1;
-            animation: rotate 120s linear infinite;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* --- CORE SYSTEM --- */
-        #system-container {
-            position: relative;
-            width: 100%; height: 100%;
-            perspective: 1000px;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* The Central Monolith */
-        .core {
-            width: 160px; height: 160px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 50%;
+        .split-pane {
+            flex: 1;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            text-align: center;
-            z-index: 100;
+            position: relative;
             cursor: pointer;
-            box-shadow: 0 0 60px var(--accent-glow);
-            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
+            transition: all 0.5s ease;
+            border: 1px solid #222;
+            text-decoration: none; /* Link reset */
         }
 
-        .core:hover {
-            transform: scale(1.05);
-            border-color: var(--accent);
-            box-shadow: 0 0 80px var(--accent-glow);
+        .split-pane:hover { flex: 1.5; background: #0a0a0a; }
+
+        h2 {
+            font-size: 3rem; color: #555; text-transform: uppercase;
+            transition: all 0.3s; z-index: 10; margin-bottom: 10px;
+        }
+        
+        p { color: #444; font-family: 'JetBrains Mono'; font-size: 0.9rem; z-index: 10; transition: color 0.3s; }
+
+        .pane-icon {
+            font-size: 10rem; position: absolute; opacity: 0.05;
+            transition: all 0.5s; color: #fff;
         }
 
-        .core i { font-size: 2.5rem; color: var(--text-main); margin-bottom: 10px; transition: transform 0.5s; }
-        .core h1 { font-size: 1.2rem; font-weight: 800; line-height: 1.2; }
-        .core p { font-size: 0.7rem; color: var(--accent); font-family: 'JetBrains Mono'; margin-top: 5px; letter-spacing: 1px;}
+        /* Hover Effects */
+        .split-pane:hover .pane-icon { opacity: 0.1; transform: scale(1.2); }
+        .split-pane:hover h2 { transform: scale(1.1); color: #fff; }
+        .split-pane:hover p { color: #888; }
 
-        /* Decoupled State for Core */
-        body.decoupled .core {
-            transform: scale(0.8);
-            opacity: 0.8;
-        }
-        body.decoupled .core i { transform: rotate(180deg); }
+        /* Left Side (Visual) */
+        #visual-pane:hover { border-color: #6366f1; }
+        #visual-pane:hover h2 { color: #6366f1; text-shadow: 0 0 20px rgba(99,102,241,0.5); }
 
-        /* --- MICROSERVICES (CARDS) --- */
-        .card {
-            position: absolute;
-            background: rgba(21, 25, 31, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0; /* Padding handled inside content for scroll */
-            box-shadow: var(--card-shadow);
-            opacity: 0;
-            pointer-events: none;
-            width: 350px;
-            max-height: 500px;
-            display: flex; flex-direction: column;
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            transform: translate(-50%, -50%) scale(0.5); /* Start tiny in center */
-            top: 50%; left: 50%;
-        }
-
-        /* Expanded Positions */
-        body.decoupled .card {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        /* Card Header */
-        .card-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255,255,255,0.02);
-        }
-
-        .card-header h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 4px; }
-        .card-header span { font-size: 0.75rem; color: var(--accent); font-family: 'JetBrains Mono'; display: block; }
-        .card-header .date { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
-
-        /* Card Body (Scrollable) */
-        .card-body {
-            padding: 20px 25px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        /* Custom Scrollbar */
-        .card-body::-webkit-scrollbar { width: 6px; }
-        .card-body::-webkit-scrollbar-track { background: transparent; }
-        .card-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        .card-body::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-
-        .card ul { list-style: none; }
-        .card li {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            margin-bottom: 12px;
-            padding-left: 15px;
-            position: relative;
-            line-height: 1.5;
-        }
-        .card li::before {
-            content: '•';
-            color: var(--accent);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-        }
-
-        /* Specific Card Positions (Desktop) */
-        /* Top Left */
-        body.decoupled #card-weave { top: 25%; left: 25%; width: 400px; height: 450px; }
-        /* Bottom Right */
-        body.decoupled #card-nagarro { top: 75%; left: 75%; width: 350px; height: 350px; }
-        /* Top Right */
-        body.decoupled #card-skills { top: 25%; left: 75%; width: 320px; height: 400px; }
-        /* Bottom Left */
-        body.decoupled #card-projects { top: 75%; left: 25%; width: 350px; height: 300px; }
-
-        /* Tags for Skills */
-        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--text-main);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            font-family: 'JetBrains Mono';
-        }
-
-        /* Footer */
-        .footer-nav {
-            position: fixed; bottom: 30px;
-            display: flex; gap: 20px;
-            opacity: 0; transition: opacity 1s 0.5s;
-        }
-        body.decoupled .footer-nav { opacity: 1; }
-        .footer-nav a { color: var(--text-dim); font-size: 1.2rem; transition: color 0.3s; }
-        .footer-nav a:hover { color: var(--accent); }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 1024px) {
-            body { overflow-y: auto; height: auto; display: block; padding: 50px 20px; }
-            #system-container { display: block; perspective: none; height: auto; padding-top: 150px;}
-            
-            .core { 
-                position: fixed; top: 30px; left: 50%; 
-                transform: translateX(-50%) scale(0.8) !important;
-                margin-bottom: 50px;
-                z-index: 999;
-            }
-
-            .card {
-                position: relative; top: auto !important; left: auto !important;
-                transform: none !important; opacity: 1 !important; pointer-events: auto !important;
-                width: 100% !important; height: auto !important;
-                margin-bottom: 20px;
-                max-height: none;
-            }
-
-            /* Hide footer on mobile, or make static */
-            .footer-nav { position: static; justify-content: center; margin-top: 30px; opacity: 1; }
-        }
-
+        /* Right Side (System) */
+        #system-pane:hover { border-color: #00f3ff; }
+        #system-pane:hover h2 { color: #00f3ff; text-shadow: 0 0 20px rgba(0,243,255,0.5); }
     </style>
 </head>
 <body>
 
-    <div class="grid-bg"></div>
+    <a href="decoupled.html" class="split-pane" id="visual-pane">
+        <i class="fas fa-cubes pane-icon"></i>
+        <h2>Visual</h2>
+        <p>DECONSTRUCTED ARCHITECTURE</p>
+    </a>
 
-    <div id="system-container">
-        
-        <div class="core" onclick="toggleState()">
-            <i class="fas fa-cubes"></i>
-            <h1>Varun<br>Mehta</h1> <p>DECOUPLE</p>
-        </div>
+    <a href="system-design.html" class="split-pane" id="system-pane">
+        <i class="fas fa-network-wired pane-icon"></i>
+        <h2>System</h2>
+        <p>LIVE DIAGNOSTICS DASHBOARD</p>
+    </a>
 
-        <div class="card" id="card-weave">
-            <div class="card-header">
-                <h3>Weave Communications</h3> <span>Interim Team Lead & Sr. Engineer</span> <div class="date">July 2021 - Present | Remote</div> </div>
-            <div class="card-body">
-                <ul>
-                    <li>Re-architected the monolithic sync agent to a modular, multi-process architecture (Parent-Child topology). </li>
-                    <li>Decoupled execution logic by designing a distributed 'Sync-Engine' framework on the client's machine. </li>
-                    <li>Spearheaded the design of a new PMS integration module with 99.9% reliable code via TDD. </li>
-                    <li>Re-architected core payment processing engine to a loosely coupled system (multi-processor routing). </li>
-                    <li>Engineered robust payment split & scheduling system, increasing monthly volume by $1 Million. </li>
-                    <li>Integrated Bank Payments increasing revenue by $500k annually for large value payments. </li>
-                    <li>Built server-driven terminal payment backend achieving 99.9% availability. </li>
-                    <li>Reduced CI/CD pipeline time by 33% by parallelizing integration tests. </li>
-                    <li>Implemented Over-The-Air (OTA) update mechanism allowing sub-engines to be patched independently. </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card" id="card-nagarro">
-            <div class="card-header">
-                <h3>Nagarro Softwares</h3> <span>Software Engineer</span> <div class="date">April 2019 - June 2021</div> </div>
-            <div class="card-body">
-                <ul>
-                    <li>Designed scalable, event-driven email pipeline processing 1 Billion+ emails in < 24hrs. </li>
-                    <li>Boosted system throughput by 130% through in-code queue creation and Java concurrency. </li>
-                    <li>Developed custom Maven dependency versioning tool, reducing update time by 70%. </li>
-                    <li>Implemented multi-tenant microservices and database for client onboarding. </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card" id="card-skills">
-            <div class="card-header">
-                <h3>Technical Skills</h3> <span>Stack & Infrastructure</span>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 15px;">
-                    <strong style="font-size: 0.8rem; color: #fff;">Languages</strong>
-                    <div class="tags">
-                        <span class="tag">Golang</span> <span class="tag">Rust</span> <span class="tag">Python</span> <span class="tag">Java</span> <span class="tag">Node.js</span> <span class="tag">FastAPI</span> </div>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong style="font-size: 0.8rem; color: #fff;">Architecture</strong>
-                    <div class="tags">
-                        <span class="tag">Microservices</span> <span class="tag">Event-Driven</span> <span class="tag">gRPC</span> <span class="tag">Distributed Systems</span> </div>
-                </div>
-                <div>
-                    <strong style="font-size: 0.8rem; color: #fff;">Infra & DB</strong>
-                    <div class="tags">
-                        <span class="tag">Kubernetes</span> <span class="tag">Docker</span> <span class="tag">Kafka</span> <span class="tag">PostgreSQL</span> <span class="tag">Elasticsearch</span> <span class="tag">MongoDB</span> </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card" id="card-projects">
-            <div class="card-header">
-                <h3>Key Projects</h3> <span>R&D Initiatives</span>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 15px;">
-                    <strong style="color: var(--accent); font-size: 0.9rem;">Mini LeetCode (WIP)</strong> <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 5px;">
-                        System to execute user-provided code in an isolated, secure environment. </p>
-                </div>
-                <div>
-                    <strong style="color: var(--accent); font-size: 0.9rem;">Distributed Secrets Vault</strong> <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 5px;">
-                        Secure vault service implementing Shamir's Secret Sharing algorithm to split sensitive cryptographic keys. </p>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="footer-nav">
-        <a href="mailto:mehtavarunwork@gmail.com"><i class="fas fa-envelope"></i></a> <a href="tel:+919779078000"><i class="fas fa-phone"></i></a> <a href="#"><i class="fab fa-linkedin"></i></a>
-    </div>
-
-    <script>
-        const body = document.body;
-        
-        function toggleState() {
-            body.classList.toggle('decoupled');
-            
-            const p = document.querySelector('.core p');
-            if(body.classList.contains('decoupled')) {
-                p.innerText = "COUPLE";
-            } else {
-                p.innerText = "DECOUPLE";
-            }
-        }
-
-        // Mouse Parallax - SUBTLE ONLY
-        // We apply this to the background grid only to prevent "Shaking" on interactive elements
-        const grid = document.querySelector('.grid-bg');
-        
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.clientX) / 50;
-            const y = (window.innerHeight / 2 - e.clientY) / 50;
-            
-            // Only move background
-            grid.style.transform = `translate(${x}px, ${y}px)`;
-        });
-
-    </script>
 </body>
 </html>
